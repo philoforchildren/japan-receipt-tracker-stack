@@ -14,18 +14,18 @@ export default function ScanPage() {
     setLoading(true);
     setError("");
     try {
-      const base64 = await toBase64(file);
+      const { base64, mimeType } = await compressToJpeg(file);
       const res = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ imageBase64: base64, mimeType: file.type }),
+        body: JSON.stringify({ imageBase64: base64, mimeType }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       sessionStorage.setItem("geminiResult", JSON.stringify(data));
       router.push("/scan/confirm");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "辨識失敗，請手動輸入");
+      setError(e instanceof Error ? e.message : "辨識失敗，請重試");
     } finally {
       setLoading(false);
     }
@@ -39,9 +39,8 @@ export default function ScanPage() {
       </div>
 
       <div
-        className="flex-1 flex flex-col items-center justify-center gap-6 rounded-2xl cursor-pointer"
+        className="flex-1 flex flex-col items-center justify-center gap-6 rounded-2xl"
         style={{ border: "2px dashed var(--border)", minHeight: 300 }}
-        onClick={() => inputRef.current?.click()}
       >
         {loading ? (
           <>
@@ -50,11 +49,8 @@ export default function ScanPage() {
           </>
         ) : (
           <>
-            <div className="text-6xl">📷</div>
-            <p className="text-lg font-medium">點擊拍照或選取收據照片</p>
-            <p className="text-sm" style={{ color: "var(--muted)" }}>
-              支援 JPG、PNG、HEIC
-            </p>
+            <div className="text-6xl">🧾</div>
+            <p className="text-lg font-medium">選擇收據照片</p>
           </>
         )}
       </div>
@@ -75,53 +71,50 @@ export default function ScanPage() {
       <div className="flex gap-3">
         <button
           onClick={() => inputRef.current?.click()}
-          className="flex-1 h-12 rounded-xl font-medium flex items-center justify-center gap-2"
+          disabled={loading}
+          className="flex-1 h-12 rounded-xl font-medium flex items-center justify-center gap-2 disabled:opacity-50"
           style={{ background: "var(--accent)", color: "#000" }}
         >
           📷 開相機
         </button>
         <button
           onClick={() => galleryRef.current?.click()}
-          className="flex-1 h-12 rounded-xl font-medium flex items-center justify-center gap-2"
+          disabled={loading}
+          className="flex-1 h-12 rounded-xl font-medium flex items-center justify-center gap-2 disabled:opacity-50"
           style={{ background: "var(--card)", border: "1px solid var(--border)" }}
         >
           🖼️ 從相簿選
         </button>
       </div>
 
-      <input
-        ref={inputRef}
-        type="file"
-        accept="image/*"
-        capture="environment"
-        className="hidden"
-        onChange={(e) => {
-          const file = e.target.files?.[0];
-          if (file) handleFile(file);
-        }}
-      />
-      <input
-        ref={galleryRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={(e) => {
-          const file = e.target.files?.[0];
-          if (file) handleFile(file);
-        }}
-      />
+      <input ref={inputRef} type="file" accept="image/*" capture="environment" className="hidden"
+        onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); e.target.value = ""; }} />
+      <input ref={galleryRef} type="file" accept="image/*" className="hidden"
+        onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); e.target.value = ""; }} />
     </main>
   );
 }
 
-function toBase64(file: File): Promise<string> {
+function compressToJpeg(file: File): Promise<{ base64: string; mimeType: string }> {
   return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = reader.result as string;
-      resolve(result.split(",")[1]);
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const MAX = 1600;
+      let { width, height } = img;
+      if (width > MAX || height > MAX) {
+        if (width > height) { height = Math.round(height * MAX / width); width = MAX; }
+        else { width = Math.round(width * MAX / height); height = MAX; }
+      }
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      canvas.getContext("2d")!.drawImage(img, 0, 0, width, height);
+      const dataUrl = canvas.toDataURL("image/jpeg", 0.9);
+      resolve({ base64: dataUrl.split(",")[1], mimeType: "image/jpeg" });
     };
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
+    img.onerror = reject;
+    img.src = url;
   });
 }
