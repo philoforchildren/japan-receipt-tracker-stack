@@ -2,9 +2,8 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import type { GeminiResult } from "./types";
 
 const MODELS = [
-  "gemini-2.0-flash-001",
-  "gemini-2.0-flash",
-  "gemini-1.5-flash",
+  "gemini-2.5-flash",
+  "gemini-2.0-flash-lite",
 ];
 
 const PROMPT = `分析這張收據照片，只回傳 JSON（不要其他文字）：
