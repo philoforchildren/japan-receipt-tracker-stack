@@ -42,8 +42,12 @@ export default function ReceiptForm({ initial }: Props) {
   }, []);
 
   useEffect(() => {
-    if (!amount || currency === "台幣" || currency === "其他") {
-      setAmountTWD(currency === "台幣" ? amount : "");
+    if (currency === "台幣") {
+      setAmountTWD(amount);
+      setRateLabel("");
+      return;
+    }
+    if (currency === "其他" || !amount) {
       setRateLabel("");
       return;
     }
@@ -54,9 +58,11 @@ export default function ReceiptForm({ initial }: Props) {
           const twd = Math.round(parseFloat(amount) * rate);
           setAmountTWD(twd.toString());
           setRateLabel(`1 ${currency} ≈ NT$${rate.toFixed(2)}`);
+        } else {
+          setRateLabel("匯率抓取失敗，請手動填入台幣換算");
         }
       })
-      .catch(() => setAmountTWD(""));
+      .catch(() => setRateLabel("匯率抓取失敗，請手動填入台幣換算"));
   }, [amount, currency]);
 
   const handleSave = async () => {
