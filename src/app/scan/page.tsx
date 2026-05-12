@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 export default function ScanPage() {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
+  const galleryRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -71,11 +72,38 @@ export default function ScanPage() {
         </div>
       )}
 
+      <div className="flex gap-3">
+        <button
+          onClick={() => inputRef.current?.click()}
+          className="flex-1 h-12 rounded-xl font-medium flex items-center justify-center gap-2"
+          style={{ background: "var(--accent)", color: "#000" }}
+        >
+          📷 開相機
+        </button>
+        <button
+          onClick={() => galleryRef.current?.click()}
+          className="flex-1 h-12 rounded-xl font-medium flex items-center justify-center gap-2"
+          style={{ background: "var(--card)", border: "1px solid var(--border)" }}
+        >
+          🖼️ 從相簿選
+        </button>
+      </div>
+
       <input
         ref={inputRef}
         type="file"
         accept="image/*"
         capture="environment"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) handleFile(file);
+        }}
+      />
+      <input
+        ref={galleryRef}
+        type="file"
+        accept="image/*"
         className="hidden"
         onChange={(e) => {
           const file = e.target.files?.[0];
