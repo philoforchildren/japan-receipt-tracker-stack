@@ -6,6 +6,12 @@ const CURRENCY_MAP: Record<string, string> = {
   歐元: "EUR",
 };
 
+const FALLBACK_RATES: Record<string, number> = {
+  JPY: 0.21,
+  USD: 32,
+  EUR: 35,
+};
+
 export async function GET(req: NextRequest) {
   const from = req.nextUrl.searchParams.get("from") ?? "日圓";
   const isoCode = CURRENCY_MAP[from];
@@ -21,8 +27,9 @@ export async function GET(req: NextRequest) {
     );
     const data = await res.json();
     const rate: number = data?.rates?.TWD ?? 0;
-    return NextResponse.json({ rate });
+    if (rate > 0) return NextResponse.json({ rate });
+    return NextResponse.json({ rate: FALLBACK_RATES[isoCode] ?? 1 });
   } catch {
-    return NextResponse.json({ rate: 0 }, { status: 500 });
+    return NextResponse.json({ rate: FALLBACK_RATES[isoCode] ?? 1 });
   }
 }

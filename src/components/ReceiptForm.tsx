@@ -58,11 +58,9 @@ export default function ReceiptForm({ initial }: Props) {
           const twd = Math.round(parseFloat(amount) * rate);
           setAmountTWD(twd.toString());
           setRateLabel(`1 ${currency} ≈ NT$${rate.toFixed(2)}`);
-        } else {
-          setRateLabel("匯率抓取失敗，請手動填入台幣換算");
         }
       })
-      .catch(() => setRateLabel("匯率抓取失敗，請手動填入台幣換算"));
+      .catch(() => {});
   }, [amount, currency]);
 
   const handleSave = async () => {

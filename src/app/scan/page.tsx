@@ -60,12 +60,13 @@ export default function ScanPage() {
 
       {error && (
         <div className="rounded-xl p-4 text-center" style={{ background: "#450a0a", color: "#fca5a5" }}>
-          {error}
+          <p>{error}</p>
           <button
-            className="block mx-auto mt-2 underline text-sm"
-            onClick={() => router.push("/add")}
+            className="mt-3 px-4 py-2 rounded-lg text-sm font-medium"
+            style={{ background: "#7f1d1d", color: "#fca5a5" }}
+            onClick={() => { setError(""); inputRef.current?.click(); }}
           >
-            改用手動輸入
+            重新拍照
           </button>
         </div>
       )}
