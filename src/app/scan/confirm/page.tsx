@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import type { GeminiResult, Currency, Category, Trip } from "@/lib/types";
+import type { GeminiResult } from "@/lib/types";
 import ReceiptForm from "@/components/ReceiptForm";
 
 export default function ConfirmPage() {
