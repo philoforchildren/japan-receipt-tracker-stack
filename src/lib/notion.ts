@@ -15,7 +15,6 @@ export async function getTrips(): Promise<Trip[]> {
       or: [
         { property: "狀態", select: { equals: "計劃中" } },
         { property: "狀態", select: { equals: "待出發" } },
-        { property: "狀態", select: { equals: "已完成" } },
       ],
     },
     sorts: [{ property: "日期", direction: "descending" }],
