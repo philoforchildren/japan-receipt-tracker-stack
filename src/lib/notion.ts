@@ -1,9 +1,12 @@
 import { Client } from "@notionhq/client";
+import type { CreatePageParameters } from "@notionhq/client/build/src/api-endpoints";
 import type { ReceiptData, Trip } from "./types";
 
 const notion = new Client({ auth: process.env.NOTION_API_KEY });
 const DB_ID = process.env.NOTION_DATABASE_ID!;
 const TRAVEL_DB_ID = process.env.NOTION_TRAVEL_DATABASE_ID!;
+
+type NotionProperties = CreatePageParameters["properties"];
 
 export async function getTrips(): Promise<Trip[]> {
   const response = await notion.databases.query({
@@ -28,7 +31,7 @@ export async function getTrips(): Promise<Trip[]> {
 }
 
 export async function saveReceipt(data: ReceiptData): Promise<void> {
-  const properties: Record<string, unknown> = {
+  const properties: NotionProperties = {
     "名稱": { title: [{ text: { content: data.storeName || "（未命名）" } }] },
     "品項": { rich_text: [{ text: { content: data.items } }] },
     "金額": { number: data.amount },
@@ -37,11 +40,8 @@ export async function saveReceipt(data: ReceiptData): Promise<void> {
     "類別": { select: { name: data.category } },
     "日期": { date: { start: data.date } },
     "備註": { rich_text: [{ text: { content: data.notes } }] },
+    ...(data.tripId ? { "旅行": { relation: [{ id: data.tripId }] } } : {}),
   };
-
-  if (data.tripId) {
-    properties["旅行"] = { relation: [{ id: data.tripId }] };
-  }
 
   await notion.pages.create({
     parent: { database_id: DB_ID },
